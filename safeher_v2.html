@@ -1,0 +1,499 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SafeHer v2</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#13131a;--surface2:#1c1c27;--accent:#e8427a;--accent2:#ff6fa0;--gold:#f5c842;--text:#f0eee8;--muted:#8a8a9a;--border:rgba(232,66,122,0.18);--radius:16px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:0 0 40px}
+body::before{content:'';position:fixed;inset:0;opacity:.4;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")}
+.orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0}
+.orb1{width:420px;height:420px;background:radial-gradient(circle,rgba(232,66,122,0.18) 0%,transparent 70%);top:-80px;right:-60px}
+.orb2{width:300px;height:300px;background:radial-gradient(circle,rgba(245,200,66,0.08) 0%,transparent 70%);bottom:80px;left:-60px}
+
+header{position:relative;z-index:1;text-align:center;padding:36px 20px 20px;width:100%;max-width:720px}
+.logo-wrap{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px}
+.logo-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;box-shadow:0 0 24px rgba(232,66,122,0.45)}
+h1{font-family:'DM Serif Display',serif;font-size:2.2rem;letter-spacing:-0.5px;background:linear-gradient(135deg,#fff 40%,var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tagline{font-size:13px;color:var(--muted);margin-top:4px}
+.disclaimer{margin-top:12px;background:rgba(232,66,122,0.08);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:12px;color:var(--accent2);display:inline-block}
+
+/* lang toggle */
+.lang-bar{position:relative;z-index:1;display:flex;gap:8px;justify-content:center;margin-bottom:12px}
+.lang-btn{background:var(--surface);border:0.5px solid var(--border);border-radius:30px;padding:5px 18px;font-size:12px;font-weight:500;cursor:pointer;color:var(--muted);font-family:'DM Sans',sans-serif;transition:all .2s}
+.lang-btn.active{background:rgba(232,66,122,0.15);border-color:var(--accent);color:var(--accent2)}
+
+/* feature tabs */
+.tabs{position:relative;z-index:1;display:flex;gap:6px;padding:0 16px 14px;max-width:720px;width:100%}
+.tab{flex:1;padding:9px 6px;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;font-size:12px;font-weight:500;cursor:pointer;color:var(--muted);text-align:center;font-family:'DM Sans',sans-serif;transition:all .2s}
+.tab.active{background:rgba(232,66,122,0.15);border-color:var(--accent);color:var(--accent2)}
+
+/* panels */
+.panel{display:none;position:relative;z-index:1;width:100%;max-width:720px;padding:0 16px}
+.panel.active{display:block}
+
+/* helplines */
+.helplines{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:0 16px 14px;max-width:720px;width:100%;position:relative;z-index:1}
+.hl{background:var(--surface);border:0.5px solid var(--border);border-radius:40px;padding:5px 14px;font-size:12px;font-weight:500;display:flex;align-items:center;gap:5px}
+.hl span{color:var(--accent2)}
+
+/* CHAT */
+.chat-box{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);overflow:hidden;display:flex;flex-direction:column}
+.messages{padding:18px;display:flex;flex-direction:column;gap:14px;min-height:240px;max-height:380px;overflow-y:auto}
+.messages::-webkit-scrollbar{width:4px}
+.messages::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px}
+.msg{display:flex;gap:9px;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{flex-direction:row-reverse}
+.avatar{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:2px}
+.avatar.ai{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.avatar.u{background:var(--surface2);border:0.5px solid var(--border)}
+.bubble{max-width:84%;padding:11px 15px;border-radius:13px;font-size:13.5px;line-height:1.65}
+.bubble.ai{background:var(--surface2);border:0.5px solid var(--border);border-top-left-radius:3px}
+.bubble.user{background:linear-gradient(135deg,var(--accent),#c02d5e);color:#fff;border-top-right-radius:3px}
+.bubble.ai h3{font-family:'DM Serif Display',serif;font-size:14px;color:var(--accent2);margin:10px 0 5px}
+.bubble.ai h3:first-child{margin-top:0}
+.bubble.ai ul{padding-left:16px;margin:4px 0}
+.bubble.ai li{margin:4px 0}
+.bubble.ai .sos-num{display:inline-block;background:rgba(232,66,122,0.15);border:0.5px solid var(--accent);border-radius:5px;padding:1px 9px;font-weight:600;color:var(--accent2);font-size:12.5px;margin:2px 3px 2px 0}
+.level{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;margin-bottom:8px}
+.level.high{background:rgba(255,80,80,0.15);color:#ff6060;border:0.5px solid rgba(255,80,80,0.3)}
+.level.medium{background:rgba(245,200,66,0.12);color:var(--gold);border:0.5px solid rgba(245,200,66,0.25)}
+.level.low{background:rgba(60,220,120,0.1);color:#50dd90;border:0.5px solid rgba(60,220,120,0.2)}
+.typing{display:flex;gap:5px;align-items:center;padding:4px 0}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.input-area{padding:12px 14px;border-top:0.5px solid var(--border);display:flex;gap:9px;align-items:flex-end;background:var(--surface)}
+textarea{flex:1;background:var(--surface2);border:0.5px solid var(--border);border-radius:11px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13.5px;padding:10px 13px;resize:none;min-height:42px;max-height:110px;outline:none;transition:border-color .2s;line-height:1.5}
+textarea::placeholder{color:var(--muted)}
+textarea:focus{border-color:rgba(232,66,122,0.5)}
+.send-btn{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;box-shadow:0 0 14px rgba(232,66,122,0.35)}
+.send-btn:hover{transform:scale(1.05)}.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.send-btn svg{fill:white;width:17px;height:17px}
+.quick{display:flex;flex-wrap:wrap;gap:7px;padding:12px 14px 0}
+.qbtn{background:var(--surface2);border:0.5px solid var(--border);border-radius:7px;padding:6px 11px;font-size:11.5px;color:var(--muted);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s}
+.qbtn:hover{color:var(--text);border-color:var(--accent)}
+
+/* FAKE CALL */
+.fake-call-wrap{display:flex;flex-direction:column;gap:14px}
+.fc-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.fc-title{font-family:'DM Serif Display',serif;font-size:17px;color:var(--accent2)}
+.fc-desc{font-size:13px;color:var(--muted);text-align:center;line-height:1.6}
+.caller-options{display:grid;grid-template-columns:1fr 1fr;gap:9px;width:100%}
+.caller-opt{background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:9px;font-size:13px;transition:all .2s}
+.caller-opt:hover,.caller-opt.selected{border-color:var(--accent);background:rgba(232,66,122,0.1)}
+.caller-avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--surface)}
+.delay-row{display:flex;align-items:center;gap:10px;width:100%}
+.delay-row label{font-size:13px;color:var(--muted);white-space:nowrap}
+.delay-row input[type=range]{flex:1}
+.delay-val{font-size:13px;font-weight:600;color:var(--accent2);min-width:28px}
+.trigger-btn{width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:white;font-family:'DM Serif Display',serif;font-size:16px;cursor:pointer;font-weight:500;transition:all .2s;box-shadow:0 0 18px rgba(232,66,122,0.35)}
+.trigger-btn:hover{transform:translateY(-1px);box-shadow:0 0 26px rgba(232,66,122,0.5)}
+
+/* incoming call UI */
+.call-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:20px}
+.call-overlay.show{display:flex}
+.call-phone{background:#1a1a2e;border:2px solid var(--border);border-radius:30px;width:260px;padding:30px 20px 20px;display:flex;flex-direction:column;align-items:center;gap:14px;box-shadow:0 0 60px rgba(232,66,122,0.3)}
+.call-name{font-family:'DM Serif Display',serif;font-size:20px;color:var(--text)}
+.call-status{font-size:13px;color:var(--muted);animation:pulse 1.5s infinite}
+.call-actions{display:flex;gap:40px;margin-top:8px}
+.call-action{width:54px;height:54px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;transition:transform .15s}
+.call-action:hover{transform:scale(1.08)}
+.call-decline{background:#e84242}
+.call-accept{background:#42c074}
+.call-timer{font-size:18px;font-weight:600;color:var(--accent2);display:none}
+
+/* LOCATION */
+.loc-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:14px}
+.loc-btn{width:100%;padding:12px;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:white;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;box-shadow:0 0 14px rgba(232,66,122,0.3)}
+.loc-btn:hover{transform:translateY(-1px)}
+.loc-result{background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;padding:14px;font-size:13px;line-height:1.8;display:none}
+.loc-result.show{display:block}
+.nearby-item{display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border)}
+.nearby-item:last-child{border-bottom:none}
+.nearby-icon{font-size:18px;margin-top:1px}
+.nearby-info{flex:1}
+.nearby-name{font-weight:500;font-size:13.5px}
+.nearby-meta{font-size:12px;color:var(--muted)}
+.share-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(37,211,102,0.12);border:0.5px solid rgba(37,211,102,0.3);border-radius:8px;color:#25d366;font-size:12.5px;cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;transition:all .2s;text-decoration:none}
+.share-btn:hover{background:rgba(37,211,102,0.2)}
+
+/* WHATSAPP */
+.wa-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:20px;display:flex;flex-direction:column;gap:14px}
+.wa-header{display:flex;align-items:center;gap:12px}
+.wa-icon{width:44px;height:44px;background:#25d366;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px}
+.wa-title{font-family:'DM Serif Display',serif;font-size:17px}
+.wa-subtitle{font-size:12.5px;color:var(--muted)}
+.wa-steps{display:flex;flex-direction:column;gap:10px}
+.wa-step{display:flex;gap:11px;align-items:flex-start}
+.step-num{width:24px;height:24px;border-radius:50%;background:rgba(232,66,122,0.15);border:0.5px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--accent2);flex-shrink:0;margin-top:1px}
+.step-text{font-size:13px;color:var(--text);line-height:1.55}
+.step-text code{background:var(--surface2);border:0.5px solid var(--border);border-radius:5px;padding:1px 7px;font-size:12px;color:var(--accent2);font-family:'DM Sans',monospace}
+.wa-demo{background:var(--surface2);border:0.5px solid var(--border);border-radius:10px;padding:14px;font-size:13px}
+.wa-demo-title{font-size:11.5px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px}
+.wa-msg{margin:7px 0;padding:8px 12px;border-radius:8px;font-size:12.5px;line-height:1.55;max-width:88%}
+.wa-msg.recv{background:#1e2a1e;border:0.5px solid rgba(37,211,102,0.2);color:#d0f0d0}
+.wa-msg.sent{background:var(--surface);border:0.5px solid var(--border);margin-left:auto}
+.wa-cta{display:flex;gap:9px;flex-wrap:wrap}
+.wa-link{flex:1;min-width:140px;padding:11px;border-radius:10px;background:#25d366;border:none;color:white;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s}
+.wa-link:hover{background:#1fba5a}
+.wa-link.outline{background:transparent;border:1px solid #25d366;color:#25d366}
+.wa-link.outline:hover{background:rgba(37,211,102,0.1)}
+
+footer{position:relative;z-index:1;margin-top:20px;font-size:11px;color:var(--muted);text-align:center;padding:0 16px}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<!-- FAKE CALL OVERLAY -->
+<div class="call-overlay" id="callOverlay">
+  <div class="call-phone">
+    <div style="font-size:48px" id="callEmoji">👩</div>
+    <div class="call-name" id="callName">Priya (Cousin)</div>
+    <div class="call-status" id="callStatus">Incoming call…</div>
+    <div class="call-timer" id="callTimer">0:00</div>
+    <div class="call-actions">
+      <button class="call-action call-decline" onclick="endCall()">📵</button>
+      <button class="call-action call-accept" onclick="acceptCall()" id="acceptBtn">📞</button>
+    </div>
+  </div>
+</div>
+
+<header>
+  <div class="logo-wrap">
+    <div class="logo-icon">🛡️</div>
+    <h1>SafeHer</h1>
+  </div>
+  <p class="tagline">AI women safety assistant · India · 24/7</p>
+  <div class="disclaimer">⚠️ Immediate danger? Call <strong>112</strong> first.</div>
+</header>
+
+<div class="lang-bar">
+  <button class="lang-btn active" id="btnEn" onclick="setLang('en')">🇬🇧 English</button>
+  <button class="lang-btn" id="btnHi" onclick="setLang('hi')">🇮🇳 हिन्दी</button>
+</div>
+
+<div class="helplines">
+  <div class="hl"><span>📞</span> Police <span>100</span></div>
+  <div class="hl"><span>📞</span> Emergency <span>112</span></div>
+  <div class="hl"><span>📞</span> Women <span>1091</span></div>
+  <div class="hl"><span>📞</span> DV Helpline <span>181</span></div>
+  <div class="hl"><span>📞</span> Cyber Crime <span>1930</span></div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('chat')">💬 AI Chat</div>
+  <div class="tab" onclick="switchTab('call')">📞 Fake Call</div>
+  <div class="tab" onclick="switchTab('location')">📍 Location</div>
+  <div class="tab" onclick="switchTab('whatsapp')">💚 WhatsApp</div>
+</div>
+
+<!-- CHAT PANEL -->
+<div class="panel active" id="panel-chat">
+  <div class="chat-box">
+    <div class="quick">
+      <button class="qbtn" onclick="fillQ(quickEn[0])">Being followed</button>
+      <button class="qbtn" onclick="fillQ(quickEn[1])">Unsafe at night</button>
+      <button class="qbtn" onclick="fillQ(quickEn[2])">Online harassment</button>
+      <button class="qbtn" onclick="fillQ(quickEn[3])">Domestic violence</button>
+      <button class="qbtn" onclick="fillQ(quickEn[4])">Drink spiked</button>
+    </div>
+    <div class="messages" id="messages">
+      <div class="msg">
+        <div class="avatar ai">🛡️</div>
+        <div class="bubble ai" id="welcomeBubble">
+          <strong>Namaste! I'm SafeHer.</strong><br><br>
+          Describe your situation and I'll give you immediate safety steps, India helplines, and emergency advice.<br><br>
+          <em style="color:var(--muted);font-size:12px">You are safe here. Everything is confidential.</em>
+        </div>
+      </div>
+    </div>
+    <div class="input-area">
+      <textarea id="userInput" placeholder="Describe your situation…" rows="1"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2v7z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- FAKE CALL PANEL -->
+<div class="panel" id="panel-call">
+  <div class="fake-call-wrap">
+    <div class="fc-card">
+      <div class="fc-title">📞 Fake Incoming Call</div>
+      <div class="fc-desc">Set up a fake call to escape any uncomfortable or dangerous situation. Your phone will show a realistic incoming call screen.</div>
+      <div style="width:100%">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:7px">Choose caller:</div>
+        <div class="caller-options">
+          <div class="caller-opt selected" id="c0" onclick="selectCaller(0)"><div class="caller-avatar">👩</div><div><div style="font-size:13px;font-weight:500">Priya (Cousin)</div><div style="font-size:11px;color:var(--muted)">Female relative</div></div></div>
+          <div class="caller-opt" id="c1" onclick="selectCaller(1)"><div class="caller-avatar">👨</div><div><div style="font-size:13px;font-weight:500">Rahul (Brother)</div><div style="font-size:11px;color:var(--muted)">Male relative</div></div></div>
+          <div class="caller-opt" id="c2" onclick="selectCaller(2)"><div class="caller-avatar">👩‍💼</div><div><div style="font-size:13px;font-weight:500">Boss (Office)</div><div style="font-size:11px;color:var(--muted)">Work call</div></div></div>
+          <div class="caller-opt" id="c3" onclick="selectCaller(3)"><div class="caller-avatar">🏥</div><div><div style="font-size:13px;font-weight:500">Hospital</div><div style="font-size:11px;color:var(--muted)">Urgent call</div></div></div>
+        </div>
+      </div>
+      <div class="delay-row" style="width:100%">
+        <label>Ring after:</label>
+        <input type="range" min="0" max="30" value="5" id="delaySlider" oninput="document.getElementById('delayVal').textContent=this.value+'s'">
+        <span class="delay-val" id="delayVal">5s</span>
+      </div>
+      <button class="trigger-btn" onclick="triggerFakeCall()">📲 Schedule Fake Call</button>
+    </div>
+    <div style="background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px;font-size:13px;color:var(--muted);line-height:1.7">
+      💡 <strong style="color:var(--text)">How to use:</strong> Tap "Schedule Fake Call" before entering an unsafe place. After the set delay, your screen will show a realistic incoming call — giving you a natural reason to leave or step aside.
+    </div>
+  </div>
+</div>
+
+<!-- LOCATION PANEL -->
+<div class="panel" id="panel-location">
+  <div class="loc-card">
+    <div style="font-family:'DM Serif Display',serif;font-size:17px;color:var(--accent2)">📍 Find Help Near You</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.6">Share your location to find nearby police stations, hospitals, and safe spaces. You can also share your live location via WhatsApp.</div>
+    <button class="loc-btn" onclick="getLocation()">📍 Detect My Location</button>
+    <div class="loc-result" id="locResult"></div>
+  </div>
+</div>
+
+<!-- WHATSAPP PANEL -->
+<div class="panel" id="panel-whatsapp">
+  <div class="wa-card">
+    <div class="wa-header">
+      <div class="wa-icon">💬</div>
+      <div><div class="wa-title">WhatsApp Chatbot</div><div class="wa-subtitle">SafeHer on WhatsApp — no app needed</div></div>
+    </div>
+    <div class="wa-demo">
+      <div class="wa-demo-title">Preview — how it works</div>
+      <div class="wa-msg recv">🛡️ <strong>SafeHer Bot:</strong> Namaste! I'm your safety assistant. Type your situation or send "HELP" anytime.</div>
+      <div class="wa-msg sent">I'm being followed by a man near my office</div>
+      <div class="wa-msg recv">🔴 <strong>HIGH DANGER</strong><br>1. Walk into any shop/mall immediately<br>2. Call 112 now — stay on the line<br>3. Share your live location with a trusted contact<br>4. Don't go home directly<br><br>📞 Women Helpline: <strong>1091</strong> | Police: <strong>100</strong></div>
+      <div class="wa-msg sent">fake call</div>
+      <div class="wa-msg recv">📞 Calling you in 10 seconds with a fake call from "Priya (Cousin)". Use it to escape!</div>
+    </div>
+    <div class="wa-steps">
+      <div style="font-size:13px;font-weight:500;color:var(--text)">How to set up for Build-A-Thon:</div>
+      <div class="wa-step"><div class="step-num">1</div><div class="step-text">Get a free WhatsApp Business API number via <strong>Meta for Developers</strong> or use <strong>Twilio Sandbox</strong> (free for testing)</div></div>
+      <div class="wa-step"><div class="step-num">2</div><div class="step-text">Deploy the backend on <strong>Vercel</strong> — a webhook endpoint that receives WhatsApp messages and calls Claude API</div></div>
+      <div class="wa-step"><div class="step-num">3</div><div class="step-text">Set your webhook URL in Meta dashboard: <code>https://your-app.vercel.app/api/whatsapp</code></div></div>
+      <div class="wa-step"><div class="step-num">4</div><div class="step-text">Users save your number → send any message → Claude responds with safety advice instantly</div></div>
+      <div class="wa-step"><div class="step-num">5</div><div class="step-text">Special commands: <code>HELP</code> → emergency steps · <code>CALL</code> → triggers fake call · <code>LOCATION</code> → nearest police</div></div>
+    </div>
+    <div class="wa-cta">
+      <button class="wa-link" onclick="sendPrompt('Give me the complete backend Node.js code for a SafeHer WhatsApp chatbot webhook that receives messages and calls Claude API, deployable on Vercel')">💻 Get Backend Code ↗</button>
+      <button class="wa-link outline" onclick="window.open('https://developers.facebook.com/docs/whatsapp/cloud-api/get-started','_blank')">📖 WhatsApp API Docs</button>
+    </div>
+  </div>
+</div>
+
+<footer>SafeHer v2 · Claude AI · Build-A-Thon 2026 · For emergencies always call 112</footer>
+
+<script>
+let currentLang = 'en';
+let selectedCaller = 0;
+let callTimerInterval = null;
+let callSeconds = 0;
+
+const callers = [
+  {name:'Priya (Cousin)', emoji:'👩'},
+  {name:'Rahul (Brother)', emoji:'👨'},
+  {name:'Boss (Office)', emoji:'👩‍💼'},
+  {name:'Hospital', emoji:'🏥'}
+];
+
+const quickEn = [
+  'I am being followed by someone on my way home',
+  'I am stuck in an unsafe area late at night alone',
+  'Someone is harassing me online and threatening me',
+  'I am experiencing domestic violence at home',
+  'My drink may have been spiked at a party'
+];
+const quickHi = [
+  'कोई मेरा पीछा कर रहा है घर जाते समय',
+  'मैं रात को असुरक्षित जगह पर फंसी हूं',
+  'कोई मुझे ऑनलाइन परेशान कर रहा है',
+  'मुझे घर पर हिंसा का सामना करना पड़ रहा है',
+  'किसी ने मेरे पेय में कुछ मिला दिया है'
+];
+
+function setLang(l){
+  currentLang = l;
+  document.getElementById('btnEn').classList.toggle('active', l==='en');
+  document.getElementById('btnHi').classList.toggle('active', l==='hi');
+  const ph = document.getElementById('userInput');
+  ph.placeholder = l==='hi' ? 'अपनी स्थिति बताएं…' : 'Describe your situation…';
+  document.getElementById('welcomeBubble').innerHTML = l==='hi'
+    ? '<strong>नमस्ते! मैं SafeHer हूं।</strong><br><br>अपनी स्थिति बताएं, मैं आपको तुरंत सुरक्षा कदम, भारत की हेल्पलाइन नंबर और आपातकालीन सलाह दूंगी।<br><br><em style="color:var(--muted);font-size:12px">आप यहां सुरक्षित हैं। सब कुछ गोपनीय है।</em>'
+    : '<strong>Namaste! I\'m SafeHer.</strong><br><br>Describe your situation and I\'ll give you immediate safety steps, India helplines, and emergency advice.<br><br><em style="color:var(--muted);font-size:12px">You are safe here. Everything is confidential.</em>';
+  const btns = document.querySelectorAll('.qbtn');
+  const q = l==='hi' ? quickHi : quickEn;
+  const labels = l==='hi' ? ['पीछा हो रहा है','रात में असुरक्षित','ऑनलाइन उत्पीड़न','घरेलू हिंसा','पेय में मिलावट'] : ['Being followed','Unsafe at night','Online harassment','Domestic violence','Drink spiked'];
+  btns.forEach((b,i)=>{ b.textContent = labels[i]; b.onclick = ()=>fillQ(q[i]); });
+}
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',['chat','call','location','whatsapp'][i]===t));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+t).classList.add('active');
+}
+
+function fillQ(text){ document.getElementById('userInput').value=text; document.getElementById('userInput').focus(); }
+
+function addMsg(role,html){
+  const wrap=document.createElement('div');
+  wrap.className='msg '+(role==='user'?'user':'');
+  const av=document.createElement('div');
+  av.className='avatar '+(role==='user'?'u':'ai');
+  av.textContent=role==='user'?'👤':'🛡️';
+  const bub=document.createElement('div');
+  bub.className='bubble '+(role==='user'?'user':'ai');
+  bub.innerHTML=html;
+  wrap.appendChild(av);wrap.appendChild(bub);
+  document.getElementById('messages').appendChild(wrap);
+  document.getElementById('messages').scrollTop=99999;
+  return bub;
+}
+
+function showTyping(){
+  const w=document.createElement('div');
+  w.className='msg';w.id='typing-indicator';
+  w.innerHTML=`<div class="avatar ai">🛡️</div><div class="bubble ai"><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+  document.getElementById('messages').appendChild(w);
+  document.getElementById('messages').scrollTop=99999;
+}
+function removeTyping(){const t=document.getElementById('typing-indicator');if(t)t.remove();}
+
+function formatResponse(text){
+  text=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  text=text.replace(/🔴\s*HIGH/gi,'<span class="level high">🔴 HIGH DANGER</span>');
+  text=text.replace(/🟡\s*MEDIUM/gi,'<span class="level medium">🟡 MEDIUM RISK</span>');
+  text=text.replace(/🟢\s*LOW/gi,'<span class="level low">🟢 LOW RISK</span>');
+  text=text.replace(/###\s*(.+)/g,'<h3>$1</h3>');
+  text=text.replace(/\b(112|100|101|1091|181|1930|1098|7827170170)\b/g,'<span class="sos-num">$1</span>');
+  text=text.replace(/^[-•]\s+(.+)/gm,'<li>$1</li>');
+  text=text.replace(/(<li>.*<\/li>\n?)+/g,m=>'<ul>'+m+'</ul>');
+  text=text.replace(/\n{2,}/g,'</p><p>').replace(/\n/g,'<br>');
+  return '<p>'+text+'</p>';
+}
+
+async function sendMessage(){
+  const inp=document.getElementById('userInput');
+  const msg=inp.value.trim();
+  if(!msg||document.getElementById('sendBtn').disabled)return;
+  addMsg('user',msg);
+  inp.value='';inp.style.height='auto';
+  document.getElementById('sendBtn').disabled=true;
+  showTyping();
+  const sys=currentLang==='hi'
+    ? `आप SafeHer हैं, भारत की AI महिला सुरक्षा सहायक। हिंदी में जवाब दें।
+जब उपयोगकर्ता अपनी स्थिति बताए:
+1. खतरे का स्तर बताएं: 🔴 HIGH, 🟡 MEDIUM, या 🟢 LOW
+2. 4-6 तुरंत उठाए जाने वाले कदम बताएं
+3. संबंधित भारतीय हेल्पलाइन नंबर: पुलिस 100, आपातकाल 112, महिला हेल्पलाइन 1091, घरेलू हिंसा 181, साइबर क्राइम 1930
+4. 2-3 दीर्घकालिक सुरक्षा सुझाव
+5. साहस देने वाला संदेश
+### का उपयोग सेक्शन हेडिंग के लिए करें। बुलेट पॉइंट के लिए - का उपयोग करें। 350 शब्दों से कम में जवाब दें।`
+    : `You are SafeHer, an AI women safety assistant for India. When a user describes their situation:
+1. Start with danger level: 🔴 HIGH, 🟡 MEDIUM, or 🟢 LOW
+2. Give 4-6 immediate safety steps
+3. List relevant India helplines: Police 100, Emergency 112, Women 1091, DV 181, Cyber 1930, Childline 1098
+4. Give 2-3 longer-term safety tips
+5. End with empowering message
+Use ### for headers. Use - for bullets. Never victim-blame. Under 350 words.`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys,messages:[{role:'user',content:msg}]})});
+    const data=await res.json();
+    removeTyping();
+    if(data.content&&data.content[0]) addMsg('ai',formatResponse(data.content[0].text));
+    else addMsg('ai','<span style="color:var(--accent2)">Error. If in danger, call <span class="sos-num">112</span> immediately.</span>');
+  }catch(e){
+    removeTyping();
+    addMsg('ai','<span style="color:var(--accent2)">Connection issue. Call <span class="sos-num">112</span> if in danger.</span>');
+  }
+  document.getElementById('sendBtn').disabled=false;
+}
+
+document.getElementById('userInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}});
+document.getElementById('userInput').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,110)+'px';});
+
+// FAKE CALL
+function selectCaller(i){
+  selectedCaller=i;
+  document.querySelectorAll('.caller-opt').forEach((el,idx)=>el.classList.toggle('selected',idx===i));
+}
+function triggerFakeCall(){
+  const delay=parseInt(document.getElementById('delaySlider').value)*1000;
+  const btn=document.querySelector('.trigger-btn');
+  btn.textContent='⏳ Call incoming in '+document.getElementById('delayVal').textContent+'…';
+  btn.disabled=true;
+  setTimeout(()=>{
+    const c=callers[selectedCaller];
+    document.getElementById('callEmoji').textContent=c.emoji;
+    document.getElementById('callName').textContent=c.name;
+    document.getElementById('callStatus').textContent='Incoming call…';
+    document.getElementById('callTimer').style.display='none';
+    document.getElementById('acceptBtn').style.display='flex';
+    document.getElementById('callOverlay').classList.add('show');
+    btn.textContent='📲 Schedule Fake Call';btn.disabled=false;
+    // vibrate if supported
+    if(navigator.vibrate) navigator.vibrate([500,300,500,300,500]);
+  },delay);
+}
+function acceptCall(){
+  document.getElementById('callStatus').textContent='Connected';
+  document.getElementById('acceptBtn').style.display='none';
+  document.getElementById('callTimer').style.display='block';
+  callSeconds=0;
+  clearInterval(callTimerInterval);
+  callTimerInterval=setInterval(()=>{
+    callSeconds++;
+    const m=Math.floor(callSeconds/60),s=callSeconds%60;
+    document.getElementById('callTimer').textContent=m+':'+(s<10?'0':'')+s;
+  },1000);
+}
+function endCall(){
+  clearInterval(callTimerInterval);
+  document.getElementById('callOverlay').classList.remove('show');
+}
+
+// LOCATION
+function getLocation(){
+  const btn=document.querySelector('.loc-btn');
+  btn.textContent='📍 Detecting…';btn.disabled=true;
+  if(!navigator.geolocation){
+    showLocResult('<div style="color:var(--accent2)">Geolocation not supported. Please enable location in your browser.</div>');
+    btn.textContent='📍 Detect My Location';btn.disabled=false;return;
+  }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const {latitude:lat,longitude:lng}=pos.coords;
+    const mapsUrl=`https://www.google.com/maps/search/police+station/@${lat},${lng},14z`;
+    const waShare=`https://api.whatsapp.com/send?text=${encodeURIComponent('🆘 I need help! My location: https://maps.google.com/?q='+lat+','+lng+'\nPlease call me or send help immediately.')}`;
+    showLocResult(`
+      <div style="font-weight:500;margin-bottom:10px;color:var(--text)">📍 Location detected</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Lat: ${lat.toFixed(5)}, Lng: ${lng.toFixed(5)}</div>
+      <div class="nearby-item"><div class="nearby-icon">🚔</div><div class="nearby-info"><div class="nearby-name">Nearest Police Station</div><div class="nearby-meta">Call 100 · They will trace your location</div></div></div>
+      <div class="nearby-item"><div class="nearby-icon">🏥</div><div class="nearby-info"><div class="nearby-name">Nearest Hospital / Emergency</div><div class="nearby-meta">Call 108 for ambulance</div></div></div>
+      <div class="nearby-item"><div class="nearby-icon">🗺️</div><div class="nearby-info"><div class="nearby-name">View on Google Maps</div><div class="nearby-meta"><a href="${mapsUrl}" target="_blank" style="color:var(--accent2)">Find police stations near me →</a></div></div></div>
+      <div style="margin-top:12px">
+        <a class="share-btn" href="${waShare}" target="_blank">💚 Share My Location via WhatsApp SOS</a>
+      </div>
+    `);
+    btn.textContent='📍 Detect My Location';btn.disabled=false;
+  },err=>{
+    showLocResult('<div style="color:var(--accent2)">Could not get location. Please allow location permission in your browser.</div>');
+    btn.textContent='📍 Detect My Location';btn.disabled=false;
+  });
+}
+function showLocResult(html){
+  const el=document.getElementById('locResult');
+  el.innerHTML=html;el.classList.add('show');
+}
+</script>
+</body>
+</html>
